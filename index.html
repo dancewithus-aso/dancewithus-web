@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dance With Us – Plataforma</title>
+  <style>
+    /* Estilos mínimos y neutros */
+    :root { --gap: 14px; }
+    body { font-family: system-ui, Arial, sans-serif; margin:0; color:#111; background:#fff; }
+    header, footer { border-bottom:1px solid #e5e5e5; }
+    header { position:sticky; top:0; background:#fff; z-index:10; }
+    nav{ max-width:1080px; margin:0 auto; padding:12px var(--gap); display:flex; gap:var(--gap); align-items:center; justify-content:space-between; }
+    nav a { text-decoration:none; color:#111; padding:8px 10px; border-radius:8px; }
+    nav a.active{ outline:1px solid #ddd; }
+    main { max-width:1080px; margin:0 auto; padding:24px var(--gap) 64px; }
+    .grid{ display:grid; gap:var(--gap); }
+    .cards{ grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+    .card{ border:1px solid #eee; border-radius:12px; padding:14px; }
+    .muted{ color:#666; font-size:0.95rem; }
+    .btn{ display:inline-block; padding:10px 14px; border:1px solid #222; border-radius:10px; background:#fff; cursor:pointer; }
+    .btn.primary{ background:#111; color:#fff; }
+    section{ margin-top:28px; }
+    form { display:grid; gap:10px; max-width:520px; }
+    input, select, textarea { padding:10px; border:1px solid #ddd; border-radius:10px; width:100%; }
+    .hidden{ display:none; }
+    .center{ text-align:center; }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <div><strong>Dance With Us</strong></div>
+      <div style="display:flex; gap:8px;">
+        <a href="#eventos" id="tab-eventos" class="active">Eventos</a>
+        <a href="#servicios" id="tab-servicios">Servicios</a>
+        <a href="#cuenta" id="tab-cuenta">Mi cuenta</a>
+        <a href="#admin" id="tab-admin">Admin</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Eventos -->
+    <section id="view-eventos">
+      <h1>Próximos eventos</h1>
+      <div id="eventos-list" class="grid cards"></div>
+    </section>
+
+    <!-- Servicios -->
+    <section id="view-servicios" class="hidden">
+      <h1>Catálogo de servicios</h1>
+      <div id="servicios-list" class="grid cards"></div>
+    </section>
+
+    <!-- Cuenta -->
+    <section id="view-cuenta" class="hidden">
+      <h1>Mi cuenta</h1>
+      <form id="form-login">
+        <input id="email" type="email" placeholder="Email" required />
+        <input id="telefono" type="tel" placeholder="Teléfono (opcional)" />
+        <button class="btn primary" type="submit">Entrar / Continuar</button>
+      </form>
+      <div id="cuenta-detalle" class="hidden">
+        <p><strong>Socio:</strong> <span id="cuenta-nombre"></span></p>
+        <p><strong>Rango membresía:</strong> <span id="cuenta-rango"></span></p>
+        <h3>Mis entradas</h3>
+        <div id="cuenta-entradas" class="grid cards"></div>
+      </div>
+    </section>
+
+    <!-- Admin -->
+    <section id="view-admin" class="hidden">
+      <h1>Admin</h1>
+      <form id="form-token" class="grid" style="max-width:360px;">
+        <input id="adminToken" placeholder="Token admin" />
+        <button type="submit" class="btn">Validar</button>
+      </form>
+
+      <div id="admin-panels" class="hidden">
+        <h3>Crear evento</h3>
+        <form id="form-evento">
+          <input id="eTitulo" placeholder="Título" required />
+          <input id="eFecha" type="datetime-local" required />
+          <input id="eUbicacion" placeholder="Ubicación" />
+          <textarea id="eDescripcion" placeholder="Descripción"></textarea>
+          <input id="eAforo" type="number" placeholder="Aforo" />
+          <button class="btn primary" type="submit">Guardar evento</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="center" style="padding:28px; border-top:1px solid #eee;">
+    <div class="muted">© <span id="year"></span> Asociación Músico-Cultural “Dance With Us”.</div>
+  </footer>
+
+  <script>
+  const API = "https://script.google.com/macros/s/TU_URL_DE_APPS_SCRIPT/exec"; // la conectaremos en el Paso 2
+
+  const views = {
+    eventos: document.querySelector('#view-eventos'),
+    servicios: document.querySelector('#view-servicios'),
+    cuenta: document.querySelector('#view-cuenta'),
+    admin: document.querySelector('#view-admin')
+  };
+  function show(tab){
+    Object.values(views).forEach(v=>v.classList.add('hidden'));
+    document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));
+    (views[tab]||views.eventos).classList.remove('hidden');
+    document.querySelector(`#tab-${tab}`)?.classList.add('active');
+  }
+  window.addEventListener('hashchange', ()=>{ show(location.hash.replace('#','')||'eventos'); });
+  show(location.hash.replace('#','')||'eventos');
+  document.querySelector('#year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
