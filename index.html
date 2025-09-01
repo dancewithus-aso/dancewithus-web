@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dance With Us – Plataforma</title>
   <style>
-    /* Estilos mínimos y neutros */
     :root { --gap: 14px; }
     body { font-family: system-ui, Arial, sans-serif; margin:0; color:#111; background:#fff; }
     header, footer { border-bottom:1px solid #e5e5e5; }
@@ -41,19 +40,16 @@
   </header>
 
   <main>
-    <!-- Eventos -->
     <section id="view-eventos">
       <h1>Próximos eventos</h1>
       <div id="eventos-list" class="grid cards"></div>
     </section>
 
-    <!-- Servicios -->
     <section id="view-servicios" class="hidden">
       <h1>Catálogo de servicios</h1>
       <div id="servicios-list" class="grid cards"></div>
     </section>
 
-    <!-- Cuenta -->
     <section id="view-cuenta" class="hidden">
       <h1>Mi cuenta</h1>
       <form id="form-login">
@@ -69,7 +65,6 @@
       </div>
     </section>
 
-    <!-- Admin -->
     <section id="view-admin" class="hidden">
       <h1>Admin</h1>
       <form id="form-token" class="grid" style="max-width:360px;">
@@ -96,7 +91,8 @@
   </footer>
 
   <script>
-  const API = "https://script.google.com/macros/s/TU_URL_DE_APPS_SCRIPT/exec"; // la conectaremos en el Paso 2
+  // ← Pegada tu URL real del Web App:
+  const API = "https://script.google.com/macros/s/AKfycbyAWxMK221EWVASJ8SEh3YV1Z88CC8_Pn59GYN7dE0FhrBvTjebt8RBzeBxyFk4zwZR/exec";
 
   const views = {
     eventos: document.querySelector('#view-eventos'),
@@ -113,6 +109,118 @@
   window.addEventListener('hashchange', ()=>{ show(location.hash.replace('#','')||'eventos'); });
   show(location.hash.replace('#','')||'eventos');
   document.querySelector('#year').textContent = new Date().getFullYear();
+
+  async function api(endpoint, payload={}){
+    const res = await fetch(`${API}?endpoint=${encodeURIComponent(endpoint)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error('Error API');
+    return res.json();
+  }
+
+  async function cargarEventos(){
+    try {
+      const data = await api('listarEventos');
+      const el = document.querySelector('#eventos-list');
+      el.innerHTML = (data.items||[]).map(ev=>`
+        <div class="card">
+          <h3>${ev.titulo}</h3>
+          <div class="muted">${ev.fechaInicio||''} · ${ev.ubicacion||''}</div>
+          <p>${ev.descripcion||''}</p>
+          <button class="btn" onclick="comprar({id: '${'${ev.id||\"\"}'}'})">Comprar</button>
+        </div>
+      `).join('');
+    } catch(e){ console.error(e); }
+  }
+
+  async function comprar({id}){
+    const email = prompt('Email para tu entrada:');
+    if(!email) return;
+    try{
+      await api('crearPedido', { eventId:id, email });
+      alert('Pedido creado. Revisa tu email cuando se valide.');
+    }catch(e){ alert('No se pudo crear el pedido'); }
+  }
+
+  async function cargarServicios(){
+    try {
+      const data = await api('listarServicios');
+      const el = document.querySelector('#servicios-list');
+      el.innerHTML = (data.items||[]).map(s=>`
+        <div class="card">
+          <h3>${s.titulo}</h3>
+          <p class="muted">Proveedor: ${s.proveedor||''}</p>
+          <p>${s.descripcion||''}</p>
+          <button class="btn" onclick="solicitarServicio({id: '${'${s.id||\"\"}'}'})">Solicitar</button>
+        </div>
+      `).join('');
+    } catch(e){ console.error(e); }
+  }
+
+  async function solicitarServicio({id}){
+    const email = prompt('Tu email:');
+    if(!email) return;
+    try{
+      await api('solicitarServicio', { servicioId:id, email });
+      alert('Solicitud enviada. Te contactaremos.');
+    }catch(e){ alert('No se pudo enviar la solicitud'); }
+  }
+
+  const formLogin = document.querySelector('#form-login');
+  const cuentaDetalle = document.querySelector('#cuenta-detalle');
+  formLogin?.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const email = document.querySelector('#email').value.trim();
+    const telefono = document.querySelector('#telefono').value.trim();
+    try{
+      const u = await api('login', { email, telefono });
+      document.querySelector('#cuenta-nombre').textContent = u.nombre||u.email;
+      document.querySelector('#cuenta-rango').textContent = u.rango||'Estandar';
+      document.querySelector('#cuenta-entradas').innerHTML = (u.entradas||[]).map(t=>`
+        <div class="card">
+          <div><strong>${t.eventoTitulo||t.eventId||''}</strong></div>
+          <div class="muted">${t.fecha||''}</div>
+          <div>Estado: ${t.estado||''}</div>
+        </div>
+      `).join('');
+      formLogin.classList.add('hidden');
+      cuentaDetalle.classList.remove('hidden');
+    }catch(e){ alert('No se pudo iniciar sesión'); }
+  });
+
+  const formToken = document.querySelector('#form-token');
+  const adminPanels = document.querySelector('#admin-panels');
+  formToken?.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const token = document.querySelector('#adminToken').value.trim();
+    try{
+      const r = await api('validarToken', { token });
+      if(r.ok){ adminPanels.classList.remove('hidden'); }
+      else alert('Token incorrecto');
+    }catch(e){ alert('Error de validación'); }
+  });
+
+  const formEvento = document.querySelector('#form-evento');
+  formEvento?.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const payload = {
+      titulo: document.querySelector('#eTitulo').value.trim(),
+      fechaInicio: document.querySelector('#eFecha').value,
+      ubicacion: document.querySelector('#eUbicacion').value.trim(),
+      descripcion: document.querySelector('#eDescripcion').value.trim(),
+      aforo: Number(document.querySelector('#eAforo').value||0)
+    };
+    try{
+      await api('crearEvento', payload);
+      alert('Evento guardado');
+      cargarEventos();
+    }catch(e){ alert('No se pudo guardar'); }
+  });
+
+  cargarEventos();
+  cargarServicios();
   </script>
 </body>
 </html>
