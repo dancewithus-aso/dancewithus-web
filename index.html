@@ -87,10 +87,10 @@
         <option value="">-- Tipo de membresía --</option>
         <option value="puntual">Puntual (aporta solo para un evento)</option>
         <option value="estandar">Estándar (cuota anual – entrada gratis a mayoría de eventos)</option>
-        <option value="plata">Plata (mayor aporte + 10 % descuento catálogo)</option>
-        <option value="oro">Oro (alto aporte + 20 % descuento catálogo)</option>
-        <option value="platino">Platino (alto aporte + 30 % descuento catálogo)</option>
-        <option value="diamante">Diamante (solo Junta – honorífico)</option>
+        <option value="plata">Plata (mayor aporte + 5 % mín. descuento)</option>
+        <option value="oro">Oro (alto aporte + 10 % mín. descuento)</option>
+        <option value="platino">Platino (alto aporte + 15 % mín. descuento)</option>
+        <option value="diamante">Diamante (solo Junta – 20 % mín. descuento)</option>
       </select>
       <textarea id="sMensaje" placeholder="Cuéntanos un poco sobre ti"></textarea>
       <button type="submit" class="btn primary">Enviar solicitud</button>
@@ -253,7 +253,7 @@ async function aprobar(id,membresia){
     email:      data.email,
     telefono:   data.telefono||'',
     membresia:  membresia,
-    descuento:  {puntual:0, estandar:0, plata:10, oro:20, platino:30, diamante:50}[membresia],
+    descuento:  {puntual:0, estandar:0, plata:5, oro:10, platino:15, diamante:20}[membresia],
     rol:        'socio',
     createdAt:  serverTimestamp()
   });
