@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DWU – Plataforma</title>
+  <title>DWU – Asociación Músico-Cultural</title>
   <style>
     :root{--gap:14px} body{font-family:system-ui,Arial,sans-serif;margin:0}
     header,footer{border-bottom:1px solid #eee} header{position:sticky;top:0;background:#fff;z-index:10}
@@ -43,9 +43,10 @@
 <body>
 <header>
   <nav>
-    <strong>DWU</strong>
+    <a href="#inicio" id="logo" style="font-weight:bold;text-decoration:none;color:#111">DWU</a>
     <div style="display:flex;gap:8px">
-      <a href="#eventos" id="tab-eventos" class="active">Eventos</a>
+      <a href="#inicio" id="tab-inicio" class="active">Inicio</a>
+      <a href="#eventos" id="tab-eventos">Eventos</a>
       <a href="#servicios" id="tab-servicios">Servicios</a>
       <a href="#solicitud" id="tab-solicitud">Solicitud</a>
       <a href="#cuenta" id="tab-cuenta">Mi cuenta</a>
@@ -55,7 +56,18 @@
 </header>
 
 <main>
-  <section id="view-eventos">
+  <!-- INICIO (ahora sí, la página principal) -->
+  <section id="view-inicio">
+    <h1>Bienvenidos a Dance With Us</h1>
+    <p>Somos una asociación sin ánimo de lucro dedicada a promover la cultura de la música y el baile en todas sus facetas. Organizamos eventos, talleres y actividades para que músicos, bailarines y amantes de la cultura puedan conectar, aprender y disfrutar juntos.</p>
+    <p>Nuestra misión es crear un espacio abierto y colaborativo donde el arte y la comunidad se encuentren. ¡Únete y forma parte de nuestra familia!</p>
+    <div class="center" style="margin-top:28px">
+      <a href="#solicitud" class="btn primary">Quiero unirme</a>
+      <a href="#eventos" class="btn">Ver próximos eventos</a>
+    </div>
+  </section>
+
+  <section id="view-eventos" class="hidden">
     <h1>Próximos eventos</h1>
     <div id="eventos-list" class="grid cards"></div>
   </section>
@@ -129,10 +141,10 @@
 
 <script>
 // Router simple por hash
-const views={eventos:qs('#view-eventos'),servicios:qs('#view-servicios'),solicitud:qs('#view-solicitud'),cuenta:qs('#view-cuenta'),admin:qs('#view-admin')};
+const views={inicio:qs('#view-inicio'),eventos:qs('#view-eventos'),servicios:qs('#view-servicios'),solicitud:qs('#view-solicitud'),cuenta:qs('#view-cuenta'),admin:qs('#view-admin')};
 function qs(s){return document.querySelector(s)}
-function show(tab){Object.values(views).forEach(v=>v.classList.add('hidden'));document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));(views[tab]||views.eventos).classList.remove('hidden');qs(`#tab-${tab}`)?.classList.add('active')}
-addEventListener('hashchange',()=>show(location.hash.replace('#','')||'eventos'));show(location.hash.replace('#','')||'eventos');qs('#year').textContent=new Date().getFullYear();
+function show(tab){Object.values(views).forEach(v=>v.classList.add('hidden'));document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));(views[tab]||views.inicio).classList.remove('hidden');qs(`#tab-${tab}`)?.classList.add('active')}
+addEventListener('hashchange',()=>show(location.hash.replace('#','')||'inicio'));show(location.hash.replace('#','')||'inicio');qs('#year').textContent=new Date().getFullYear();
 
 // API helper (Google Apps Script)
 async function api(ep, payload={}){
