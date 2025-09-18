@@ -11,7 +11,7 @@
     nav a{padding:8px 10px;border-radius:8px;text-decoration:none;color:#111} nav a.active{outline:1px solid #ddd}
     main{max-width:1080px;margin:0 auto;padding:24px var(--gap) 64px} .grid{display:grid;gap:var(--gap)} .cards{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
     .card{border:1px solid #eee;border-radius:12px;padding:14px} .muted{color:#666;font-size:.95rem} .btn{display:inline-block;padding:10px 14px;border:1px solid #222;border-radius:10px;background:#fff;cursor:pointer}
-    .btn.primary{background:#111;color:#fff} section{margin-top:28px} form{display:grid;gap:10px;max-width:520px} input,textarea{padding:10px;border:1px solid #ddd;border-radius:10px;width:100%}
+    .btn.primary{background:#111;color:#fff} section{margin-top:28px} form{display:grid;gap:10px;max-width:520px} input,textarea,select{padding:10px;border:1px solid #ddd;border-radius:10px;width:100%}
     .hidden{display:none} .center{text-align:center}
   </style>
 
@@ -47,6 +47,7 @@
     <div style="display:flex;gap:8px">
       <a href="#eventos" id="tab-eventos" class="active">Eventos</a>
       <a href="#servicios" id="tab-servicios">Servicios</a>
+      <a href="#solicitud" id="tab-solicitud">Solicitud</a>
       <a href="#cuenta" id="tab-cuenta">Mi cuenta</a>
       <a href="#admin" id="tab-admin">Admin</a>
     </div>
@@ -62,6 +63,23 @@
   <section id="view-servicios" class="hidden">
     <h1>Catálogo de servicios</h1>
     <div id="servicios-list" class="grid cards"></div>
+  </section>
+
+  <section id="view-solicitud" class="hidden">
+    <h1>Solicitud de membresía</h1>
+    <form id="form-solicitud">
+      <input id="sNombre" placeholder="Nombre completo" required />
+      <input id="sEmail" type="email" placeholder="Email" required />
+      <input id="sTelefono" type="tel" placeholder="Teléfono" />
+      <select id="sModalidad" required>
+        <option value="">-- Modalidad --</option>
+        <option value="socio">Socio</option>
+        <option value="colaborador">Colaborador</option>
+      </select>
+      <textarea id="sMensaje" placeholder="Cuéntanos un poco sobre ti"></textarea>
+      <button type="submit" class="btn primary">Enviar solicitud</button>
+    </form>
+    <p id="sOk" class="hidden muted">✅ Solicitud enviada. Nos pondremos en contacto contigo pronto.</p>
   </section>
 
   <section id="view-cuenta" class="hidden">
@@ -105,7 +123,7 @@
 
 <script>
 // Router simple por hash
-const views={eventos:qs('#view-eventos'),servicios:qs('#view-servicios'),cuenta:qs('#view-cuenta'),admin:qs('#view-admin')};
+const views={eventos:qs('#view-eventos'),servicios:qs('#view-servicios'),solicitud:qs('#view-solicitud'),cuenta:qs('#view-cuenta'),admin:qs('#view-admin')};
 function qs(s){return document.querySelector(s)}
 function show(tab){Object.values(views).forEach(v=>v.classList.add('hidden'));document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));(views[tab]||views.eventos).classList.remove('hidden');qs(`#tab-${tab}`)?.classList.add('active')}
 addEventListener('hashchange',()=>show(location.hash.replace('#','')||'eventos'));show(location.hash.replace('#','')||'eventos');qs('#year').textContent=new Date().getFullYear();
@@ -142,6 +160,24 @@ async function cargarServicios(){
         <p>${s.descripcion||''}</p>
       </div>`).join(''); }catch(e){ console.error(e); }
 }
+
+// Solicitud de membresía
+qs('#form-solicitud')?.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const { db, collection, addDoc, serverTimestamp } = window.firebase;
+  try{
+    await addDoc(collection(db, 'membershipRequests'), {
+      nombre:     qs('#sNombre').value.trim(),
+      email:      qs('#sEmail').value.trim(),
+      telefono:   qs('#sTelefono').value.trim(),
+      modalidad:  qs('#sModalidad').value,
+      mensaje:    qs('#sMensaje').value.trim(),
+      createdAt:  serverTimestamp()
+    });
+    qs('#form-solicitud').reset();
+    qs('#sOk').classList.remove('hidden');
+  }catch(err){ alert('Error al enviar: '+err.message); }
+});
 
 // Cuenta
 qs('#form-login')?.addEventListener('submit', async (e)=>{
