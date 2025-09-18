@@ -19,12 +19,12 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp, deleteDoc, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyAw9vHweGoLBmabfohcy8Q2m2Jifludsk",
       authDomain: "dance-with-us---web.firebaseapp.com",
-      projectId: "dance-with-us---web",
+      projectId: "dance-withus---web",
       storageBucket: "dance-with-us---web.appspot.com",
       messagingSenderId: "575597343365",
       appId: "1:575597343365:web:2e7e9e6b8c0c0c0c0c0c0"
@@ -36,7 +36,7 @@
 
     window.firebase = { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword,
                         onAuthStateChanged, signOut, collection, addDoc, query, where,
-                        getDocs, serverTimestamp };
+                        getDocs, serverTimestamp, deleteDoc, doc, setDoc };
   </script>
 </head>
 
@@ -92,6 +92,7 @@
         <option value="platino">Platino (alto aporte + 15 % mín. descuento)</option>
         <option value="diamante">Diamante (solo Junta – 20 % mín. descuento)</option>
       </select>
+      <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="sCederDiamante" /> Cedo ≥ 20 % descuento a otros miembros Diamante</label>
       <textarea id="sMensaje" placeholder="Cuéntanos un poco sobre ti"></textarea>
       <button type="submit" class="btn primary">Enviar solicitud</button>
     </form>
@@ -108,8 +109,12 @@
     <div id="cuenta-detalle" class="hidden">
       <p><strong>Socio:</strong> <span id="cuenta-nombre"></span></p>
       <p><strong>Rango:</strong> <span id="cuenta-rango"></span></p>
+      <p><strong>Cuota anual:</strong> <span id="cuota-info"></span></p>
       <h3>Mis entradas</h3>
       <div id="cuenta-entradas" class="grid cards"></div>
+      <h3>Mis servicios</h3>
+      <div id="mis-servicios-list" class="grid cards"></div>
+      <button class="btn primary" onclick="mostrarFormServicio()">Añadir servicio</button>
     </div>
   </section>
 
@@ -138,6 +143,31 @@
 <footer class="center" style="padding:28px;border-top:1px solid #eee">
   <div class="muted">© <span id="year"></span> Asociación Músico-Cultural “Dance With Us”.</div>
 </footer>
+
+<!-- MODAL AÑADIR SERVICIO -->
+<dialog id="modalServicio">
+  <form method="dialog" id="form-servicio">
+    <h3>Añadir servicio</h3>
+    <input id="svTitulo" placeholder="Título del servicio" required />
+    <textarea id="svDesc" placeholder="Descripción" required></textarea>
+    <input id="svPrecio" type="number" placeholder="Precio (€)" required />
+    <label>Descuento % para cada nivel (≥ mínimo)</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <input id="svDescPuntual" type="number" min="0" max="99" placeholder="Puntual %" value="0" required />
+      <input id="svDescEstandar" type="number" min="0" max="99" placeholder="Estándar %" value="0" required />
+      <input id="svDescPlata" type="number" min="5" max="99" placeholder="Plata %" value="5" required />
+      <input id="svDescOro" type="number" min="10" max="99" placeholder="Oro %" value="10" required />
+      <input id="svDescPlatino" type="number" min="15" max="99" placeholder="Platino %" value="15" required />
+      <input id="svDescDiamante" type="number" min="20" max="99" placeholder="Diamante %" value="20" required />
+    </div>
+    <input id="svFoto" type="url" placeholder="URL de foto (opcional)" />
+    <input id="svCalendario" type="url" placeholder="URL calendario/disponibilidad (opcional)" />
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn primary" type="submit">Guardar servicio</button>
+      <button class="btn" onclick="cerrarFormServicio()">Cancelar</button>
+    </div>
+  </form>
+</dialog>
 
 <script>
 // Router simple por hash
@@ -183,12 +213,16 @@ async function cargarServicios(){
 qs('#form-solicitud')?.addEventListener('submit', async (e)=>{
   e.preventDefault();
   const { db, collection, addDoc, serverTimestamp } = window.firebase;
+  const membresia=qs('#sMembresia').value;
+  const cederDiamante=qs('#sCederDiamante').checked;
+  if(membresia==='diamante' && !cederDiamante){ alert('Para Diamante debes ceder ≥ 20 % descuento a otros Diamante.'); return; }
   try{
     await addDoc(collection(db, 'membershipRequests'), {
       nombre:     qs('#sNombre').value.trim(),
       email:      qs('#sEmail').value.trim(),
       telefono:   qs('#sTelefono').value.trim(),
-      membresia:  qs('#sMembresia').value,
+      membresia:  membresia,
+      cederDiamante,
       mensaje:    qs('#sMensaje').value.trim(),
       createdAt:  serverTimestamp()
     });
@@ -198,16 +232,69 @@ qs('#form-solicitud')?.addEventListener('submit', async (e)=>{
 });
 
 // Cuenta
+let currentUser=null;
 qs('#form-login')?.addEventListener('submit', async (e)=>{
   e.preventDefault();
   const email=qs('#email').value.trim(), telefono=qs('#telefono').value.trim();
-  try{ const u=await api('login',{email,telefono});
-    qs('#cuenta-nombre').textContent=u.nombre||u.email; qs('#cuenta-rango').textContent=u.rango||'Estándar';
-    qs('#cuenta-entradas').innerHTML=(u.entradas||[]).map(t=>`
-      <div class="card"><div><strong>${t.eventId||''}</strong></div><div class="muted">${t.fecha||''}</div><div>Estado: ${t.estado||''}</div></div>`).join('');
+  try{
+    const u=await api('login',{email,telefono});
+    currentUser=u;
+    qs('#cuenta-nombre').textContent=u.nombre||u.email;
+    qs('#cuenta-rango').textContent=u.membresia||'Estándar';
+    qs('#cuota-info').textContent=u.membresia==='diamante'?'Exenta':u.cuotaPagada?'57 € pagada':'Pendiente 57 €';
     qs('#form-login').classList.add('hidden'); qs('#cuenta-detalle').classList.remove('hidden');
+    cargarMisServicios();
   }catch(e){ alert('No se pudo iniciar sesión'); }
 });
+
+// Mis servicios
+async function cargarMisServicios(){
+  if(!currentUser?.id) return;
+  const { db, collection, query, where, getDocs } = window.firebase;
+  const snap=await getDocs(query(collection(db,'servicios'),where('owner','==',currentUser.id)));
+  const list=qs('#mis-servicios-list');
+  list.innerHTML='';
+  snap.forEach(doc=>{
+    const s=doc.data();
+    list.insertAdjacentHTML('beforeend',`
+      <div class="card">
+        <h3>${s.titulo}</h3>
+        <p>${s.descripcion}</p>
+        <p class="muted">Precio: ${s.precio} €</p>
+        <p class="muted">Descuentos: P${s.descPuntual}% E${s.descEstandar}% Pl${s.descPlata}% O${s.descOro}% Plat${s.descPlatino}% D${s.descDiamante}%</p>
+        <button class="btn" onclick="eliminarServicio('${doc.id}')">Eliminar</button>
+      </div>`);
+  });
+}
+window.mostrarFormServicio=()=>qs('#modalServicio').showModal();
+window.cerrarFormServicio=()=>qs('#modalServicio').close();
+
+qs('#form-servicio')?.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const { db, collection, addDoc, serverTimestamp } = window.firebase;
+  if(!currentUser?.id){ alert('Debes iniciar sesión'); return; }
+  const dp=Number(qs('#svDescPuntual').value), de=Number(qs('#svDescEstandar').value), dpl=Number(qs('#svDescPlata').value), dor=Number(qs('#svDescOro').value), dpt=Number(qs('#svDescPlatino').value), dd=Number(qs('#svDescDiamante').value);
+  if(dpl<5||dor<10||dpt<15||dd<20){ alert('Descuentos deben cumplir mínimos: Plata 5 %, Oro 10 %, Platino 15 %, Diamante 20 %'); return; }
+  try{
+    await addDoc(collection(db,'servicios'),{
+      owner:      currentUser.id,
+      titulo:     qs('#svTitulo').value.trim(),
+      descripcion:qs('#svDesc').value.trim(),
+      precio:     Number(qs('#svPrecio').value),
+      descPuntual:dp, descEstandar:de, descPlata:dpl, descOro:dor, descPlatino:dpt, descDiamante:dd,
+      foto:       qs('#svFoto').value.trim(),
+      calendario: qs('#svCalendario').value.trim(),
+      createdAt:  serverTimestamp()
+    });
+    cerrarFormServicio(); qs('#form-servicio').reset(); cargarMisServicios();
+  }catch(err){ alert('Error al guardar servicio: '+err.message); }
+});
+window.eliminarServicio=async(id)=>{
+  if(!confirm('¿Eliminar este servicio?')) return;
+  const { db, doc, deleteDoc } = window.firebase;
+  await deleteDoc(doc(db,'servicios',id));
+  cargarMisServicios();
+};
 
 // Admin
 qs('#form-token')?.addEventListener('submit', async (e)=>{
@@ -253,6 +340,7 @@ async function aprobar(id,membresia){
     email:      data.email,
     telefono:   data.telefono||'',
     membresia:  membresia,
+    cuotaPagada:false,
     descuento:  {puntual:0, estandar:0, plata:5, oro:10, platino:15, diamante:20}[membresia],
     rol:        'socio',
     createdAt:  serverTimestamp()
@@ -260,7 +348,7 @@ async function aprobar(id,membresia){
   // Borrar solicitud
   await deleteDoc(doc(db,'membershipRequests',id));
   cargarSolicitudes();
-  alert('Socio aprobado y añadido con membresía '+membresia.toUpperCase());
+  alert('Socio aprobado y añadido con membresía '+membresia.toUpperCase()+'. Recuerda abonar la cuota de 57 €.');
 }
 
 qs('#admin-panels').addEventListener('DOMNodeInserted',()=>cargarSolicitudes(),{once:true});
