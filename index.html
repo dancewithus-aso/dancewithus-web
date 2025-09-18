@@ -83,30 +83,12 @@
     <h1>Solicitud de membresía</h1>
     <p>Elige la opción que mejor se adapte a ti. Todas las membresías (excepto Diamante) requieren abonar la cuota anual mínima de 57 €.</p>
 
-    <div class="membership-info">
-      <strong>Puntual</strong><br>
-      Sin cuota. Solo aportas si asistes a un evento concreto.
-    </div>
-    <div class="membership-info">
-      <strong>Estándar</strong><br>
-      Cuota anual 57 €. Entrada gratis a la mayoría de eventos.
-    </div>
-    <div class="membership-info">
-      <strong>Plata</strong><br>
-      Cuota anual 57 €. Aportación extra y mín. 5 % descuento en catálogo.
-    </div>
-    <div class="membership-info">
-      <strong>Oro</strong><br>
-      Cuota anual 57 €. Aportación alta y mín. 10 % descuento en catálogo.
-    </div>
-    <div class="membership-info">
-      <strong>Platino</strong><br>
-      Cuota anual 57 €. Aportación alta y mín. 15 % descuento en catálogo.
-    </div>
-    <div class="membership-info">
-      <strong>Diamante</strong><br>
-      Solo por invitación de la Junta. Mín. 20 % descuento en catálogo.
-    </div>
+    <div class="membership-info"><strong>Puntual</strong><br>Sin cuota. Solo aportas si asistes a un evento concreto.</div>
+    <div class="membership-info"><strong>Estándar</strong><br>Cuota anual 57 €. Entrada gratis a la mayoría de eventos.</div>
+    <div class="membership-info"><strong>Plata</strong><br>Cuota anual 57 €. Aportación extra y mín. 5 % descuento en catálogo.</div>
+    <div class="membership-info"><strong>Oro</strong><br>Cuota anual 57 €. Aportación alta y mín. 10 % descuento en catálogo.</div>
+    <div class="membership-info"><strong>Platino</strong><br>Cuota anual 57 €. Aportación alta y mín. 15 % descuento en catálogo.</div>
+    <div class="membership-info"><strong>Diamante</strong><br>Solo por invitación de la Junta. Mín. 20 % descuento en catálogo.</div>
 
     <form id="form-solicitud">
       <input id="sNombre" placeholder="Nombre completo" required />
@@ -179,45 +161,9 @@
   <div class="muted">© <span id="year"></span> Asociación Músico-Cultural “Dance With Us”.</div>
 </footer>
 
-<!-- MODAL EDITAR PERFIL -->
-<dialog id="modalPerfil">
-  <form method="dialog" id="form-perfil">
-    <h3>Editar perfil</h3>
-    <input id="perfilNombreEdit" placeholder="Nombre" required />
-    <textarea id="perfilBioEdit" placeholder="Biografía"></textarea>
-    <input id="perfilContactoEdit" placeholder="Contacto (tel, email, web...)" />
-    <input id="perfilFotoEdit" type="url" placeholder="URL de foto" />
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn primary" type="submit">Guardar</button>
-      <button class="btn" onclick="qs('#modalPerfil').close()">Cancelar</button>
-    </div>
-  </form>
-</dialog>
-
-<!-- MODAL AÑADIR SERVICIO -->
-<dialog id="modalServicio">
-  <form method="dialog" id="form-servicio">
-    <h3>Añadir servicio</h3>
-    <input id="svTitulo" placeholder="Título del servicio" required />
-    <textarea id="svDesc" placeholder="Descripción" required></textarea>
-    <input id="svPrecio" type="number" placeholder="Precio (€)" required />
-    <label>Descuento % para cada nivel (≥ mínimo)</label>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-      <input id="svDescPuntual" type="number" min="0" max="99" placeholder="Puntual %" value="0" required />
-      <input id="svDescEstandar" type="number" min="0" max="99" placeholder="Estándar %" value="0" required />
-      <input id="svDescPlata" type="number" min="5" max="99" placeholder="Plata %" value="5" required />
-      <input id="svDescOro" type="number" min="10" max="99" placeholder="Oro %" value="10" required />
-      <input id="svDescPlatino" type="number" min="15" max="99" placeholder="Platino %" value="15" required />
-      <input id="svDescDiamante" type="number" min="20" max="99" placeholder="Diamante %" value="20" required />
-    </div>
-    <input id="svFoto" type="url" placeholder="URL de foto (opcional)" />
-    <input id="svCalendario" type="url" placeholder="URL calendario/disponibilidad (opcional)" />
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn primary" type="submit">Guardar servicio</button>
-      <button class="btn" onclick="qs('#modalServicio').close()">Cancelar</button>
-    </div>
-  </form>
-</dialog>
+<!-- MODALES -->
+<dialog id="modalPerfil"><form method="dialog" id="form-perfil"><h3>Editar perfil</h3><input id="perfilNombreEdit" required /><textarea id="perfilBioEdit"></textarea><input id="perfilContactoEdit" /><input id="perfilFotoEdit" type="url" /><button class="btn primary" type="submit">Guardar</button><button class="btn" type="button" onclick="qs('#modalPerfil').close()">Cancelar</button></form></dialog>
+<dialog id="modalServicio"><form method="dialog" id="form-servicio"><h3>Añadir servicio</h3><input id="svTitulo" required /><textarea id="svDesc" required></textarea><input id="svPrecio" type="number" required /><label>Descuento % (≥ mínimo)</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><input id="svDescPuntual" type="number" min="0" max="99" value="0" required /><input id="svDescEstandar" type="number" min="0" max="99" value="0" required /><input id="svDescPlata" type="number" min="5" max="99" value="5" required /><input id="svDescOro" type="number" min="10" max="99" value="10" required /><input id="svDescPlatino" type="number" min="15" max="99" value="15" required /><input id="svDescDiamante" type="number" min="20" max="99" value="20" required /></div><input id="svFoto" type="url" placeholder="Foto (opcional)" /><input id="svCalendario" type="url" placeholder="Calendario (opcional)" /><button class="btn primary" type="submit">Guardar</button><button class="btn" type="button" onclick="qs('#modalServicio').close()">Cancelar</button></form></dialog>
 
 <script>
 // Router simple por hash
