@@ -1,212 +1,39 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DWU – Plataforma</title>
-  <style>
-    :root{--gap:14px} body{font-family:system-ui,Arial,sans-serif;margin:0}
-    header,footer{border-bottom:1px solid #eee} header{position:sticky;top:0;background:#fff;z-index:10}
-    nav{max-width:1080px;margin:0 auto;padding:12px var(--gap);display:flex;gap:var(--gap);align-items:center;justify-content:space-between}
-    nav a{padding:8px 10px;border-radius:8px;text-decoration:none;color:#111} nav a.active{outline:1px solid #ddd}
-    main{max-width:1080px;margin:0 auto;padding:24px var(--gap) 64px} .grid{display:grid;gap:var(--gap)} .cards{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
-    .card{border:1px solid #eee;border-radius:12px;padding:14px} .muted{color:#666;font-size:.95rem} .btn{display:inline-block;padding:10px 14px;border:1px solid #222;border-radius:10px;background:#fff;cursor:pointer}
-    .btn.primary{background:#111;color:#fff} section{margin-top:28px} form{display:grid;gap:10px;max-width:520px} input,textarea,select{padding:10px;border:1px solid #ddd;border-radius:10px;width:100%}
-    .hidden{display:none} .center{text-align:center}
-  </style>
-
-  <!-- Firebase SDK 10.12.2 -->
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAw9vHweGoLBmabfohcy8Q2m2Jifludsk",
-      authDomain: "dance-with-us---web.firebaseapp.com",
-      projectId: "dance-with-us---web",
-      storageBucket: "dance-with-us---web.appspot.com",
-      messagingSenderId: "575597343365",
-      appId: "1:575597343365:web:2e7e9e6b8c0c0c0c0c0c0"
-    };
-
-    const app  = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db   = getFirestore(app);
-
-    window.firebase = { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-                        onAuthStateChanged, signOut, collection, addDoc, query, where,
-                        getDocs, serverTimestamp };
-  </script>
-</head>
-
-<body>
-<header>
-  <nav>
-    <strong>DWU</strong>
-    <div style="display:flex;gap:8px">
-      <a href="#eventos" id="tab-eventos" class="active">Eventos</a>
-      <a href="#servicios" id="tab-servicios">Servicios</a>
-      <a href="#solicitud" id="tab-solicitud">Solicitud</a>
-      <a href="#cuenta" id="tab-cuenta">Mi cuenta</a>
-      <a href="#admin" id="tab-admin">Admin</a>
-    </div>
-  </nav>
-</header>
-
-<main>
-  <section id="view-eventos">
-    <h1>Próximos eventos</h1>
-    <div id="eventos-list" class="grid cards"></div>
-  </section>
-
-  <section id="view-servicios" class="hidden">
-    <h1>Catálogo de servicios</h1>
-    <div id="servicios-list" class="grid cards"></div>
-  </section>
-
-  <section id="view-solicitud" class="hidden">
-    <h1>Solicitud de membresía</h1>
-    <form id="form-solicitud">
-      <input id="sNombre" placeholder="Nombre completo" required />
-      <input id="sEmail" type="email" placeholder="Email" required />
-      <input id="sTelefono" type="tel" placeholder="Teléfono" />
-      <select id="sModalidad" required>
-        <option value="">-- Modalidad --</option>
-        <option value="socio">Socio</option>
-        <option value="colaborador">Colaborador</option>
-      </select>
-      <textarea id="sMensaje" placeholder="Cuéntanos un poco sobre ti"></textarea>
-      <button type="submit" class="btn primary">Enviar solicitud</button>
-    </form>
-    <p id="sOk" class="hidden muted">✅ Solicitud enviada. Nos pondremos en contacto contigo pronto.</p>
-  </section>
-
-  <section id="view-cuenta" class="hidden">
-    <h1>Mi cuenta</h1>
-    <form id="form-login">
-      <input id="email" type="email" placeholder="Email" required />
-      <input id="telefono" type="tel" placeholder="Teléfono (opcional)" />
-      <button class="btn primary" type="submit">Entrar / Continuar</button>
-    </form>
-    <div id="cuenta-detalle" class="hidden">
-      <p><strong>Socio:</strong> <span id="cuenta-nombre"></span></p>
-      <p><strong>Rango:</strong> <span id="cuenta-rango"></span></p>
-      <h3>Mis entradas</h3>
-      <div id="cuenta-entradas" class="grid cards"></div>
-    </div>
-  </section>
-
-  <section id="view-admin" class="hidden">
-    <h1>Admin</h1>
-    <form id="form-token" class="grid" style="max-width:360px">
-      <input id="adminToken" placeholder="Token admin (DWU2025)" />
-      <button type="submit" class="btn">Validar</button>
-    </form>
-    <div id="admin-panels" class="hidden">
-      <h3>Crear evento</h3>
-      <form id="form-evento">
-        <input id="eTitulo" placeholder="Título" required />
-        <input id="eFecha" type="datetime-local" required />
-        <input id="eUbicacion" placeholder="Ubicación" />
-        <textarea id="eDescripcion" placeholder="Descripción"></textarea>
-        <input id="eAforo" type="number" placeholder="Aforo" />
-        <button class="btn primary" type="submit">Guardar evento</button>
-      </form>
-    </div>
-  </section>
-</main>
-
-<footer class="center" style="padding:28px;border-top:1px solid #eee">
-  <div class="muted">© <span id="year"></span> Asociación Músico-Cultural “Dance With Us”.</div>
-</footer>
-
-<script>
-// Router simple por hash
-const views={eventos:qs('#view-eventos'),servicios:qs('#view-servicios'),solicitud:qs('#view-solicitud'),cuenta:qs('#view-cuenta'),admin:qs('#view-admin')};
-function qs(s){return document.querySelector(s)}
-function show(tab){Object.values(views).forEach(v=>v.classList.add('hidden'));document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));(views[tab]||views.eventos).classList.remove('hidden');qs(`#tab-${tab}`)?.classList.add('active')}
-addEventListener('hashchange',()=>show(location.hash.replace('#','')||'eventos'));show(location.hash.replace('#','')||'eventos');qs('#year').textContent=new Date().getFullYear();
-
-// API helper (Google Apps Script)
-async function api(ep, payload={}){
-  const r = await fetch(`https://script.google.com/macros/s/AKfycbwltO0Kuat4XBvHaaGKKIJFeLioy2-AwNpjNKram7Ww8_1cEyPSiv1nPjL-hRAOLlIs/exec?endpoint=${encodeURIComponent(ep)}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
-  const t = await r.text(); try{ return JSON.parse(t);}catch(e){ alert('API devolvió algo inesperado'); throw new Error(t); }
+// ----------- ADMIN: VER Y APROBAR SOLICITUDES -----------
+async function cargarSolicitudes(){
+  const { db, collection, query, getDocs, deleteDoc, addDoc, serverTimestamp } = window.firebase;
+  const qSnap = await getDocs(collection(db,'membershipRequests'));
+  const list = qs('#admin-solicitudes-list');
+  list.innerHTML='';
+  qSnap.forEach(doc=>{
+    const d=doc.data();
+    const card=document.createElement('div');
+    card.className='card';
+    card.innerHTML=`
+      <strong>${d.nombre}</strong> (${d.modalidad})<br/>
+      <span class="muted">${d.email} · ${d.telefono||''}</span><br/>
+      <em>${d.mensaje||''}</em><br/>
+      <button class="btn primary" onclick="aprobar('${doc.id}')">Aprobar</button>`;
+    list.appendChild(card);
+  });
 }
-
-// Eventos
-async function cargarEventos(){
-  try{ const data=await api('listarEventos'); const el=qs('#eventos-list');
-    el.innerHTML=(data.items||[]).map(ev=>`
-      <div class="card">
-        <h3>${ev.titulo||''}</h3>
-        <div class="muted">${ev.fechaInicio||''} · ${ev.ubicacion||''}</div>
-        <p>${ev.descripcion||''}</p>
-        <button class="btn" onclick="comprar('${ev.id||''}')">Comprar</button>
-      </div>`).join(''); }catch(e){ console.error(e); }
+async function aprobar(id){
+  const { db, collection, getDoc, doc, deleteDoc, addDoc, serverTimestamp } = window.firebase;
+  const snap = await getDoc(doc(db,'membershipRequests',id));
+  if(!snap.exists()) return alert('Solicitud no encontrada');
+  const data=snap.data();
+  // Crear usuario
+  await addDoc(collection(db,'users'),{
+    nombre:data.nombre,
+    email:data.email,
+    telefono:data.telefono||'',
+    modalidad:data.modalidad,
+    rol:'socio',
+    createdAt:serverTimestamp()
+  });
+  // Borrar solicitud
+  await deleteDoc(doc(db,'membershipRequests',id));
+  cargarSolicitudes();
+  alert('Socio aprobado y añadido a la lista.');
 }
-async function comprar(id){
-  const email=prompt('Email para tu entrada:'); if(!email) return;
-  try{ await api('crearPedido',{eventId:id,email}); alert('Pedido creado (pendiente de validar).'); }catch(e){ alert('No se pudo crear el pedido'); }
-}
-
-// Servicios
-async function cargarServicios(){
-  try{ const data=await api('listarServicios'); const el=qs('#servicios-list');
-    el.innerHTML=(data.items||[]).map(s=>`
-      <div class="card">
-        <h3>${s.titulo||''}</h3>
-        <p class="muted">Proveedor: ${s.proveedor||''}</p>
-        <p>${s.descripcion||''}</p>
-      </div>`).join(''); }catch(e){ console.error(e); }
-}
-
-// Solicitud de membresía
-qs('#form-solicitud')?.addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const { db, collection, addDoc, serverTimestamp } = window.firebase;
-  try{
-    await addDoc(collection(db, 'membershipRequests'), {
-      nombre:     qs('#sNombre').value.trim(),
-      email:      qs('#sEmail').value.trim(),
-      telefono:   qs('#sTelefono').value.trim(),
-      modalidad:  qs('#sModalidad').value,
-      mensaje:    qs('#sMensaje').value.trim(),
-      createdAt:  serverTimestamp()
-    });
-    qs('#form-solicitud').reset();
-    qs('#sOk').classList.remove('hidden');
-  }catch(err){ alert('Error al enviar: '+err.message); }
-});
-
-// Cuenta
-qs('#form-login')?.addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const email=qs('#email').value.trim(), telefono=qs('#telefono').value.trim();
-  try{ const u=await api('login',{email,telefono});
-    qs('#cuenta-nombre').textContent=u.nombre||u.email; qs('#cuenta-rango').textContent=u.rango||'Estándar';
-    qs('#cuenta-entradas').innerHTML=(u.entradas||[]).map(t=>`
-      <div class="card"><div><strong>${t.eventId||''}</strong></div><div class="muted">${t.fecha||''}</div><div>Estado: ${t.estado||''}</div></div>`).join('');
-    qs('#form-login').classList.add('hidden'); qs('#cuenta-detalle').classList.remove('hidden');
-  }catch(e){ alert('No se pudo iniciar sesión'); }
-});
-
-// Admin
-qs('#form-token')?.addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  try{
-    const r=await api('validarToken',{token: qs('#adminToken').value.trim()});
-    if(r.ok) qs('#admin-panels').classList.remove('hidden');
-    else alert('Token incorrecto');
-  }catch(e){ alert('Error de validación'); }
-});
-qs('#form-evento')?.addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const p={ titulo:qs('#eTitulo').value.trim(), fechaInicio:qs('#eFecha').value, ubicacion:qs('#eUbicacion').value.trim(), descripcion:qs('#eDescripcion').value.trim(), aforo:Number(qs('#eAforo').value||0) };
-  try{ await api('crearEvento',p); alert('Evento guardado'); cargarEventos(); }catch(e){ alert('No se pudo guardar'); }
-});
-
-cargarEventos(); cargarServicios();
-</script>
-</body>
-</html>
+// Llamar al cargar el panel admin
+qs('#admin-panels').addEventListener('DOMNodeInserted',()=>cargarSolicitudes(),{once:true});
