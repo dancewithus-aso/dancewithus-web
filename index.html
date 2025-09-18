@@ -14,6 +14,7 @@
     .btn.primary{background:#111;color:#fff} section{margin-top:28px} form{display:grid;gap:10px;max-width:520px} input,textarea,select{padding:10px;border:1px solid #ddd;border-radius:10px;width:100%}
     .hidden{display:none} .center{text-align:center}
     #perfilFoto{width:120px;height:120px;border-radius:50%;object-fit:cover;border:1px solid #ddd}
+    .membership-info{background:#f8f8f8;border:1px solid #ddd;border-radius:10px;padding:14px;margin-bottom:10px}
   </style>
 
   <!-- Firebase SDK 10.12.2 -->
@@ -80,20 +81,46 @@
 
   <section id="view-solicitud" class="hidden">
     <h1>Solicitud de membresía</h1>
+    <p>Elige la opción que mejor se adapte a ti. Todas las membresías (excepto Diamante) requieren abonar la cuota anual mínima de 57 €.</p>
+
+    <div class="membership-info">
+      <strong>Puntual</strong><br>
+      Sin cuota. Solo aportas si asistes a un evento concreto.
+    </div>
+    <div class="membership-info">
+      <strong>Estándar</strong><br>
+      Cuota anual 57 €. Entrada gratis a la mayoría de eventos.
+    </div>
+    <div class="membership-info">
+      <strong>Plata</strong><br>
+      Cuota anual 57 €. Aportación extra y mín. 5 % descuento en catálogo.
+    </div>
+    <div class="membership-info">
+      <strong>Oro</strong><br>
+      Cuota anual 57 €. Aportación alta y mín. 10 % descuento en catálogo.
+    </div>
+    <div class="membership-info">
+      <strong>Platino</strong><br>
+      Cuota anual 57 €. Aportación alta y mín. 15 % descuento en catálogo.
+    </div>
+    <div class="membership-info">
+      <strong>Diamante</strong><br>
+      Solo por invitación de la Junta. Mín. 20 % descuento en catálogo.
+    </div>
+
     <form id="form-solicitud">
       <input id="sNombre" placeholder="Nombre completo" required />
       <input id="sEmail" type="email" placeholder="Email" required />
       <input id="sTelefono" type="tel" placeholder="Teléfono" />
       <select id="sMembresia" required>
-        <option value="">-- Tipo de membresía --</option>
-        <option value="puntual">Puntual (aporta solo para un evento)</option>
-        <option value="estandar">Estándar (cuota anual – entrada gratis a mayoría de eventos)</option>
-        <option value="plata">Plata (mayor aporte + 5 % mín. descuento)</option>
-        <option value="oro">Oro (alto aporte + 10 % mín. descuento)</option>
-        <option value="platino">Platino (alto aporte + 15 % mín. descuento)</option>
-        <option value="diamante">Diamante (solo Junta – 20 % mín. descuento)</option>
+        <option value="">-- Elige membresía --</option>
+        <option value="puntual">Puntual</option>
+        <option value="estandar">Estándar</option>
+        <option value="plata">Plata</option>
+        <option value="oro">Oro</option>
+        <option value="platino">Platino</option>
+        <option value="diamante">Diamante</option>
       </select>
-      <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="sCederDiamante" /> Cedo ≥ 20 % descuento a otros miembros Diamante</label>
       <textarea id="sMensaje" placeholder="Cuéntanos un poco sobre ti"></textarea>
       <button type="submit" class="btn primary">Enviar solicitud</button>
     </form>
@@ -237,15 +264,12 @@ qs('#form-solicitud')?.addEventListener('submit', async (e)=>{
   e.preventDefault();
   const { db, collection, addDoc, serverTimestamp } = window.firebase;
   const membresia=qs('#sMembresia').value;
-  const cederDiamante=qs('#sCederDiamante').checked;
-  if(membresia==='diamante' && !cederDiamante){ alert('Para Diamante debes ceder ≥ 20 % descuento a otros Diamante.'); return; }
   try{
     await addDoc(collection(db, 'membershipRequests'), {
       nombre:     qs('#sNombre').value.trim(),
       email:      qs('#sEmail').value.trim(),
       telefono:   qs('#sTelefono').value.trim(),
       membresia:  membresia,
-      cederDiamante,
       mensaje:    qs('#sMensaje').value.trim(),
       createdAt:  serverTimestamp()
     });
