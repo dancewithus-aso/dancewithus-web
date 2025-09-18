@@ -14,7 +14,32 @@
     .btn.primary{background:#111;color:#fff} section{margin-top:28px} form{display:grid;gap:10px;max-width:520px} input,textarea{padding:10px;border:1px solid #ddd;border-radius:10px;width:100%}
     .hidden{display:none} .center{text-align:center}
   </style>
+
+  <!-- Firebase SDK 10.12.2 -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAw9vHweGoLBmabfohcy8Q2m2Jifludsk",
+      authDomain: "dance-with-us---web.firebaseapp.com",
+      projectId: "dance-with-us---web",
+      storageBucket: "dance-with-us---web.appspot.com",
+      messagingSenderId: "575597343365",
+      appId: "1:575597343365:web:2e7e9e6b8c0c0c0c0c0c0"
+    };
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    window.firebase = { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+                        onAuthStateChanged, signOut, collection, addDoc, query, where,
+                        getDocs, serverTimestamp };
+  </script>
 </head>
+
 <body>
 <header>
   <nav>
@@ -79,18 +104,15 @@
 </footer>
 
 <script>
-// ✅ Tu URL real del Web App:
-const API = "https://script.google.com/macros/s/AKfycbwltO0Kuat4XBvHaaGKKIJFeLioy2-AwNpjNKram7Ww8_1cEyPSiv1nPjL-hRAOLlIs/exec";
-
 // Router simple por hash
 const views={eventos:qs('#view-eventos'),servicios:qs('#view-servicios'),cuenta:qs('#view-cuenta'),admin:qs('#view-admin')};
 function qs(s){return document.querySelector(s)}
 function show(tab){Object.values(views).forEach(v=>v.classList.add('hidden'));document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));(views[tab]||views.eventos).classList.remove('hidden');qs(`#tab-${tab}`)?.classList.add('active')}
 addEventListener('hashchange',()=>show(location.hash.replace('#','')||'eventos'));show(location.hash.replace('#','')||'eventos');qs('#year').textContent=new Date().getFullYear();
 
-// API helper
+// API helper (Google Apps Script)
 async function api(ep, payload={}){
-  const r = await fetch(`${API}?endpoint=${encodeURIComponent(ep)}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+  const r = await fetch(`https://script.google.com/macros/s/AKfycbwltO0Kuat4XBvHaaGKKIJFeLioy2-AwNpjNKram7Ww8_1cEyPSiv1nPjL-hRAOLlIs/exec?endpoint=${encodeURIComponent(ep)}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
   const t = await r.text(); try{ return JSON.parse(t);}catch(e){ alert('API devolvió algo inesperado'); throw new Error(t); }
 }
 
@@ -103,10 +125,8 @@ async function cargarEventos(){
         <div class="muted">${ev.fechaInicio||''} · ${ev.ubicacion||''}</div>
         <p>${ev.descripcion||''}</p>
         <button class="btn" onclick="comprar('${ev.id||''}')">Comprar</button>
-      </div>`).join('');
-  }catch(e){ console.error(e); }
+      </div>`).join(''); }catch(e){ console.error(e); }
 }
-
 async function comprar(id){
   const email=prompt('Email para tu entrada:'); if(!email) return;
   try{ await api('crearPedido',{eventId:id,email}); alert('Pedido creado (pendiente de validar).'); }catch(e){ alert('No se pudo crear el pedido'); }
@@ -120,8 +140,7 @@ async function cargarServicios(){
         <h3>${s.titulo||''}</h3>
         <p class="muted">Proveedor: ${s.proveedor||''}</p>
         <p>${s.descripcion||''}</p>
-      </div>`).join('');
-  }catch(e){ console.error(e); }
+      </div>`).join(''); }catch(e){ console.error(e); }
 }
 
 // Cuenta
@@ -129,7 +148,7 @@ qs('#form-login')?.addEventListener('submit', async (e)=>{
   e.preventDefault();
   const email=qs('#email').value.trim(), telefono=qs('#telefono').value.trim();
   try{ const u=await api('login',{email,telefono});
-    qs('#cuenta-nombre').textContent=u.nombre||u.email; qs('#cuenta-rango').textContent=u.rango||'Estandar';
+    qs('#cuenta-nombre').textContent=u.nombre||u.email; qs('#cuenta-rango').textContent=u.rango||'Estándar';
     qs('#cuenta-entradas').innerHTML=(u.entradas||[]).map(t=>`
       <div class="card"><div><strong>${t.eventId||''}</strong></div><div class="muted">${t.fecha||''}</div><div>Estado: ${t.estado||''}</div></div>`).join('');
     qs('#form-login').classList.add('hidden'); qs('#cuenta-detalle').classList.remove('hidden');
@@ -145,7 +164,6 @@ qs('#form-token')?.addEventListener('submit', async (e)=>{
     else alert('Token incorrecto');
   }catch(e){ alert('Error de validación'); }
 });
-
 qs('#form-evento')?.addEventListener('submit', async (e)=>{
   e.preventDefault();
   const p={ titulo:qs('#eTitulo').value.trim(), fechaInicio:qs('#eFecha').value, ubicacion:qs('#eUbicacion').value.trim(), descripcion:qs('#eDescripcion').value.trim(), aforo:Number(qs('#eAforo').value||0) };
